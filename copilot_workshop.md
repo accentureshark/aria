@@ -242,8 +242,14 @@ Qué mostrar en la práctica (demo de 5–8 min)
 Beneficio pedagógico: los asistentes verán por qué BLOQUE 6 (configurar instrucciones, templates y archivos de contexto) reduce iteraciones y mejora la precisión del producto generado.
 
 
----
 
+## Copilotinstruction - java
+https://github.com/github/awesome-copilot/blob/54fcb2e06815e31475e8ef164727ce8a1153be82/instructions/java.instructions.md
+
+
+## prompt para springboot
+https://github.com/github/awesome-copilot/blob/54fcb2e06815e31475e8ef164727ce8a1153be82/prompts/java-springboot.prompt.md
+---
 # 📁 BLOQUE 6 — Archivos que Copilot **realmente** usa (validado)
 
 ## Prioridad y soportes
