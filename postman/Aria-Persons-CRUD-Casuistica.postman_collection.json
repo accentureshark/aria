@@ -1,0 +1,367 @@
+{
+  "info": {
+    "_postman_id": "6a852e49-1265-4543-aa4f-7d6ca2dcf2d1",
+    "name": "Aria - Persons CRUD Casuistica",
+    "description": "Cobertura CRUD y casos de error para /api/persons",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup - Create Reporter Person (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('reporterUsername', `reporter_${suffix}`);",
+              "pm.collectionVariables.set('reporterEmail', `reporter_${suffix}@aria.dev`);",
+              "pm.collectionVariables.set('reporterName', `Reporter ${suffix}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('reporterId', body.id);",
+              "pm.test('id generado', function () { pm.expect(body.id).to.be.a('number'); });",
+              "pm.test('active true por default', function () { pm.expect(body.active).to.eql(true); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{reporterUsername}}\",\n  \"email\": \"{{reporterEmail}}\",\n  \"fullName\": \"{{reporterName}}\",\n  \"department\": \"Engineering\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Create Duplicate Person (409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 409', function () { pm.response.to.have.status(409); });",
+              "const body = pm.response.json();",
+              "pm.test('error de conflicto', function () { pm.expect(body.error).to.eql('Conflict'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{reporterUsername}}\",\n  \"email\": \"{{reporterEmail}}\",\n  \"fullName\": \"Duplicado\",\n  \"department\": \"Engineering\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Create Person Validation Error (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', function () { pm.response.to.have.status(400); });",
+              "const body = pm.response.json();",
+              "pm.test('fieldErrors presente', function () { pm.expect(body.fieldErrors).to.be.an('array').that.is.not.empty; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"\",\n  \"email\": \"mail-invalido\",\n  \"fullName\": \"\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Setup - Create Assignee Person (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('assigneeUsername', `assignee_${suffix}`);",
+              "pm.collectionVariables.set('assigneeEmail', `assignee_${suffix}@aria.dev`);",
+              "pm.collectionVariables.set('assigneeName', `Assignee ${suffix}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('assigneeId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{assigneeUsername}}\",\n  \"email\": \"{{assigneeEmail}}\",\n  \"fullName\": \"{{assigneeName}}\",\n  \"department\": \"QA\",\n  \"active\": true\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Get All Persons (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('retorna array', function () { pm.expect(body).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Get Person By Id (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('coincide id', function () { pm.expect(body.id).to.eql(Number(pm.collectionVariables.get('reporterId'))); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{reporterId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{reporterId}}"] }
+      }
+    },
+    {
+      "name": "Get Person By Email (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('coincide email', function () { pm.expect(body.email).to.eql(pm.collectionVariables.get('reporterEmail')); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons/email/{{reporterEmail}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "email", "{{reporterEmail}}"] }
+      }
+    },
+    {
+      "name": "Get Person By Username (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('coincide username', function () { pm.expect(body.username).to.eql(pm.collectionVariables.get('reporterUsername')); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons/username/{{reporterUsername}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "username", "{{reporterUsername}}"] }
+      }
+    },
+    {
+      "name": "Get Persons By Department (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('retorna array', function () { pm.expect(body).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons/department/Engineering", "host": ["{{baseUrl}}"], "path": ["api", "persons", "department", "Engineering"] }
+      }
+    },
+    {
+      "name": "Update Person (200)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('reporterUpdatedUsername', `reporter_updated_${suffix}`);",
+              "pm.collectionVariables.set('reporterUpdatedEmail', `reporter_updated_${suffix}@aria.dev`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('campo actualizado', function () { pm.expect(body.username).to.eql(pm.collectionVariables.get('reporterUpdatedUsername')); });",
+              "pm.collectionVariables.set('reporterUsername', body.username);",
+              "pm.collectionVariables.set('reporterEmail', body.email);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{reporterUpdatedUsername}}\",\n  \"email\": \"{{reporterUpdatedEmail}}\",\n  \"fullName\": \"Reporter Updated\",\n  \"department\": \"Engineering\",\n  \"active\": true\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons/{{reporterId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{reporterId}}"] }
+      }
+    },
+    {
+      "name": "Deactivate Person (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('active false', function () { pm.expect(body.active).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{reporterId}}/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{reporterId}}", "deactivate"] }
+      }
+    },
+    {
+      "name": "Delete Assignee Person (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{assigneeId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{assigneeId}}"] }
+      }
+    },
+    {
+      "name": "Delete Assignee Again (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{assigneeId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{assigneeId}}"] }
+      }
+    },
+    {
+      "name": "Get Deleted Assignee By Id (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{assigneeId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{assigneeId}}"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "reporterId", "value": "" },
+    { "key": "assigneeId", "value": "" },
+    { "key": "reporterUsername", "value": "" },
+    { "key": "reporterEmail", "value": "" },
+    { "key": "assigneeUsername", "value": "" },
+    { "key": "assigneeEmail", "value": "" }
+  ]
+}
+

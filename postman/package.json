@@ -1,0 +1,15 @@
+{
+  "name": "aria-postman-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Colecciones Postman para validar la casuistica CRUD de Aria con Newman",
+  "scripts": {
+    "test:persons": "newman run Aria-Persons-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli",
+    "test:tickets": "newman run Aria-Tickets-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli",
+    "test:all": "npm run test:persons && npm run test:tickets"
+  },
+  "devDependencies": {
+    "newman": "^6.1.3"
+  }
+}
+

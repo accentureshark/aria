@@ -1,0 +1,406 @@
+{
+  "info": {
+    "_postman_id": "e3ce1c16-75ad-458c-b3e8-e5ed9545a661",
+    "name": "Aria - Tickets CRUD Casuistica",
+    "description": "Cobertura CRUD y casos de error para /api/tickets incluyendo relaciones por IDs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup - Create Reporter Person (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('ticketReporterUsername', `ticket_reporter_${suffix}`);",
+              "pm.collectionVariables.set('ticketReporterEmail', `ticket_reporter_${suffix}@aria.dev`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('ticketReporterId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{ticketReporterUsername}}\",\n  \"email\": \"{{ticketReporterEmail}}\",\n  \"fullName\": \"Ticket Reporter\",\n  \"department\": \"Engineering\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Setup - Create Assignee Person (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now();",
+              "pm.collectionVariables.set('ticketAssigneeUsername', `ticket_assignee_${suffix}`);",
+              "pm.collectionVariables.set('ticketAssigneeEmail', `ticket_assignee_${suffix}@aria.dev`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('ticketAssigneeId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{ticketAssigneeUsername}}\",\n  \"email\": \"{{ticketAssigneeEmail}}\",\n  \"fullName\": \"Ticket Assignee\",\n  \"department\": \"QA\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/persons", "host": ["{{baseUrl}}"], "path": ["api", "persons"] }
+      }
+    },
+    {
+      "name": "Create Ticket Minimal (201 - defaults)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('ticketMinimalId', body.id);",
+              "pm.test('status default OPEN', function () { pm.expect(body.status).to.eql('OPEN'); });",
+              "pm.test('priority default MEDIUM', function () { pm.expect(body.priority).to.eql('MEDIUM'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Ticket minimo\",\n  \"description\": \"Sin relaciones\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+      }
+    },
+    {
+      "name": "Create Ticket With Relations (201)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('ticketMainId', body.id);",
+              "pm.test('reporter anidado', function () { pm.expect(body.reporter.id).to.eql(Number(pm.collectionVariables.get('ticketReporterId'))); });",
+              "pm.test('assignee anidado', function () { pm.expect(body.assignee.id).to.eql(Number(pm.collectionVariables.get('ticketAssigneeId'))); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Bug login\",\n  \"description\": \"No permite autenticar\",\n  \"priority\": \"HIGH\",\n  \"reporterId\": {{ticketReporterId}},\n  \"assigneeId\": {{ticketAssigneeId}}\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+      }
+    },
+    {
+      "name": "Create Ticket Validation Error (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', function () { pm.response.to.have.status(400); });",
+              "const body = pm.response.json();",
+              "pm.test('fieldErrors presente', function () { pm.expect(body.fieldErrors).to.be.an('array').that.is.not.empty; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+      }
+    },
+    {
+      "name": "Create Ticket Invalid Reporter (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });",
+              "const body = pm.response.json();",
+              "pm.test('mensaje not found', function () { pm.expect(body.message).to.include('Person not found'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Ticket invalido\",\n  \"description\": \"Reporter inexistente\",\n  \"reporterId\": 999999999\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+      }
+    },
+    {
+      "name": "Get All Tickets (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('retorna array', function () { pm.expect(body).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+      }
+    },
+    {
+      "name": "Get Ticket By Id (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('id coincide', function () { pm.expect(body.id).to.eql(Number(pm.collectionVariables.get('ticketMainId'))); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMainId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMainId}}"] }
+      }
+    },
+    {
+      "name": "Update Ticket (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('status actualizado', function () { pm.expect(body.status).to.eql('IN_PROGRESS'); });",
+              "pm.test('priority actualizado', function () { pm.expect(body.priority).to.eql('URGENT'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Bug login actualizado\",\n  \"description\": \"Analisis en progreso\",\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"URGENT\",\n  \"reporterId\": {{ticketReporterId}},\n  \"assigneeId\": {{ticketAssigneeId}}\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMainId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMainId}}"] }
+      }
+    },
+    {
+      "name": "Update Missing Ticket (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"No existe\",\n  \"description\": \"No existe\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/tickets/999999999", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "999999999"] }
+      }
+    },
+    {
+      "name": "Delete Ticket Minimal (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMinimalId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMinimalId}}"] }
+      }
+    },
+    {
+      "name": "Delete Ticket Minimal Again (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMinimalId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMinimalId}}"] }
+      }
+    },
+    {
+      "name": "Delete Main Ticket (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMainId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMainId}}"] }
+      }
+    },
+    {
+      "name": "Delete Main Ticket Again (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketMainId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketMainId}}"] }
+      }
+    },
+    {
+      "name": "Cleanup - Delete Reporter Person (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{ticketReporterId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{ticketReporterId}}"] }
+      }
+    },
+    {
+      "name": "Cleanup - Delete Assignee Person (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/persons/{{ticketAssigneeId}}", "host": ["{{baseUrl}}"], "path": ["api", "persons", "{{ticketAssigneeId}}"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "ticketReporterId", "value": "" },
+    { "key": "ticketAssigneeId", "value": "" },
+    { "key": "ticketMinimalId", "value": "" },
+    { "key": "ticketMainId", "value": "" }
+  ]
+}
+

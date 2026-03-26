@@ -52,3 +52,4 @@ replay_pid*
 
 # Project specific
 aria.pid
+postman/node_modules/
