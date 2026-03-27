@@ -1,0 +1,323 @@
+{
+  "info": {
+    "_postman_id": "b7c4e2a1-3f88-4d12-9e01-7a2b5c8d9f10",
+    "name": "Aria - Sprints CRUD Casuistica",
+    "description": "Cobertura CRUD y casos de error para /api/sprints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /api/sprints - Crear sprint (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('sprintName', `Sprint Test ${Date.now()}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.test('response tiene id', function () { pm.expect(body.id).to.be.a('number'); });",
+              "pm.test('name coincide', function () { pm.expect(body.name).to.eql(pm.collectionVariables.get('sprintName')); });",
+              "pm.test('status default es PLANNED', function () { pm.expect(body.status).to.eql('PLANNED'); });",
+              "pm.test('createdAt presente', function () { pm.expect(body.createdAt).to.not.be.null; });",
+              "pm.collectionVariables.set('sprintId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{sprintName}}\",\n  \"goal\": \"Implementar modulo de autenticacion\",\n  \"startDate\": \"2025-02-01\",\n  \"endDate\": \"2025-02-14\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/sprints - Listar todos (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('response es array', function () { pm.expect(body).to.be.an('array'); });",
+              "pm.test('contiene al menos un sprint', function () { pm.expect(body.length).to.be.greaterThan(0); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/sprints?status=PLANNED - Filtrar por status (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('response es array', function () { pm.expect(body).to.be.an('array'); });",
+              "pm.test('todos los sprints son PLANNED', function () {",
+              "  body.forEach(s => pm.expect(s.status).to.eql('PLANNED'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints?status=PLANNED",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints"],
+          "query": [{ "key": "status", "value": "PLANNED" }]
+        }
+      }
+    },
+    {
+      "name": "GET /api/sprints/:id - Obtener por ID (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('id coincide', function () { pm.expect(body.id).to.eql(pm.collectionVariables.get('sprintId')); });",
+              "pm.test('name presente', function () { pm.expect(body.name).to.be.a('string'); });",
+              "pm.test('status presente', function () { pm.expect(body.status).to.be.a('string'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/{{sprintId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "{{sprintId}}"]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/sprints/:id - Actualizar sprint (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('status actualizado a ACTIVE', function () { pm.expect(body.status).to.eql('ACTIVE'); });",
+              "pm.test('goal actualizado', function () { pm.expect(body.goal).to.eql('Goal actualizado'); });",
+              "pm.test('updatedAt presente', function () { pm.expect(body.updatedAt).to.not.be.null; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{sprintName}}\",\n  \"goal\": \"Goal actualizado\",\n  \"startDate\": \"2025-02-01\",\n  \"endDate\": \"2025-02-14\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/{{sprintId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "{{sprintId}}"]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/sprints/:id - Eliminar sprint (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/{{sprintId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "{{sprintId}}"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/sprints/:id - Sprint eliminado retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/{{sprintId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "{{sprintId}}"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/sprints/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "99999"]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/sprints/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sprint Fantasma\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-01-14\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "99999"]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/sprints/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints", "99999"]
+        }
+      }
+    },
+    {
+      "name": "POST /api/sprints - Body sin name retorna 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"goal\": \"Sin nombre no deberia crear\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/sprints",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "sprints"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "sprintId", "value": "" },
+    { "key": "sprintName", "value": "" }
+  ]
+}

@@ -2,7 +2,22 @@
 
 Dado el ID de un ticket Jira de tipo Feature (`$ARGUMENTS`), genera todos los artefactos necesarios para implementarlo en este proyecto Spring Boot.
 
+Uso: `/generar-feature ARIA-5` o `/generar-feature ARIA-5 --dry-run`
+
 ## Pasos a seguir
+
+### 0. Detectar modo DRYRUN
+
+Revisa si `$ARGUMENTS` contiene `--dry-run` o `--dryrun` (case-insensitive).
+
+- Si está presente: activar **MODO DRYRUN**. Extrae el ticket ID del resto del argumento.
+- Si no está presente: ejecutar normalmente.
+
+En **MODO DRYRUN**:
+- Ejecutar todos los pasos de análisis (leer Jira, analizar entidad, planificar archivos)
+- Mostrar el contenido completo de cada archivo que se crearía, con su ruta
+- **NO ejecutar ninguna herramienta `Write`** — solo mostrar el preview
+- Al final mostrar un bloque de resumen con el texto: `[DRYRUN] Ningún archivo fue creado. Ejecuta sin --dry-run para aplicar los cambios.`
 
 ### 1. Leer el ticket Jira
 Usa la herramienta `mcp__claude_ai_Atlassian__getJiraIssue` con el issue key proporcionado en `$ARGUMENTS` para obtener el título, descripción, acceptance criteria y cualquier detalle técnico del ticket.
@@ -85,11 +100,19 @@ Usar assertThat de AssertJ y Mockito (when/verify/assertThrows)
 ```
 
 ### 4. Crear los archivos
-Usa la herramienta Write para crear cada archivo. Muestra primero un resumen de lo que vas a generar y espera confirmación si hay ambigüedades en la feature.
+Si estás en **MODO DRYRUN**: muestra el contenido completo de cada archivo con su ruta en un bloque de código, pero NO uses la herramienta `Write`.
+
+Si no estás en DRYRUN: usa la herramienta Write para crear cada archivo. Muestra primero un resumen de lo que vas a generar y espera confirmación si hay ambigüedades en la feature.
 
 ### 5. Reporte final
 Al terminar, muestra:
-- Lista de archivos creados con sus rutas
+- Lista de archivos creados (o que se crearían en DRYRUN) con sus rutas
 - Resumen de los endpoints generados (método HTTP + path)
 - Cualquier decisión de diseño que tomaste y por qué
 - Próximos pasos sugeridos (ej: ejecutar `/generar-newman {Entity}` para generar las pruebas)
+
+Si estás en **MODO DRYRUN**, termina con:
+```
+[DRYRUN] Vista previa completada. N archivos listos para generar.
+Ejecuta `/generar-feature {TICKET-ID}` para aplicar los cambios.
+```
