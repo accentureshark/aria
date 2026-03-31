@@ -1,0 +1,88 @@
+{
+  "enabledPlugins": {
+    "atlassian@claude-plugins-official": true
+  },
+  "env": {
+    "ATLASSIAN_URL": "https://<tu-subdominio>.atlassian.net",
+    "ATLASSIAN_EMAIL": "<tu-email@dominio.com>",
+    "ATLASSIAN_API_TOKEN": "<tu-api-token>"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(mvnw spring-boot:run|mvn spring-boot:run)\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Hook] BLOCKED: Spring Boot debe correr en tmux para acceder a los logs.');console.error('[Hook] Usa: tmux new-session -d -s aria \\\"./mvnw spring-boot:run\\\"');console.error('[Hook] Luego: tmux attach -t aria');process.exit(1)\""
+          }
+        ],
+        "description": "Bloquear spring-boot:run fuera de tmux"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(mvnw (test|package|install|clean)|mvn (test|package|install|clean))\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"if(!process.env.TMUX){console.error('[Hook] Considera correr en tmux para persistencia de sesion.');console.error('[Hook] tmux new -s dev  |  tmux attach -t dev')}\""
+          }
+        ],
+        "description": "Recordatorio de tmux para comandos Maven largos"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"git push\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Hook] Revisa los cambios antes de hacer push...');console.error('[Hook] Continuando con el push.')\""
+          }
+        ],
+        "description": "Recordatorio de revision antes de git push"
+      },
+      {
+        "matcher": "tool == \"Write\" && tool_input.file_path matches \"\\.(md|txt)$\" && !(tool_input.file_path matches \"README\\.md|CLAUDE\\.md|AGENTS\\.md|CONTRIBUTING\\.md\")",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const fs=require('fs');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const p=i.tool_input?.file_path||'';const allowedPaths=/(README|CLAUDE|AGENTS|CONTRIBUTING)\\.md$|postman[\\\\/]reports[\\\\/]|docs[\\\\/]|\\.claude[\\\\/]/;if(/\\.(md|txt)$/.test(p)&&!allowedPaths.test(p)){console.error('[Hook] BLOCKED: Creacion de documentacion aleatoria bloqueada.');console.error('[Hook] Archivo: '+p);console.error('[Hook] Rutas permitidas: README.md, postman/reports/, docs/, .claude/');process.exit(1)}console.log(d)})\""
+          }
+        ],
+        "description": "Bloquear creacion de archivos .md aleatorios (permite postman/reports, docs, .claude)"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "tool == \"Edit\" && tool_input.file_path matches \"\\.java$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const fs=require('fs');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const p=i.tool_input?.file_path;if(p&&fs.existsSync(p)){const c=fs.readFileSync(p,'utf8');const lines=c.split('\\n');const matches=[];lines.forEach((l,idx)=>{if(/System\\.out\\.print/.test(l))matches.push((idx+1)+': '+l.trim())});if(matches.length){console.error('[Hook] WARNING: System.out.println encontrado en '+p);matches.slice(0,5).forEach(m=>console.error('  '+m));console.error('[Hook] Usa SLF4J/Logback o elimina antes de commitear.')}}console.log(d)})\""
+          }
+        ],
+        "description": "Advertir sobre System.out.println en archivos Java"
+      },
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const cmd=i.tool_input?.command||'';if(/gh pr create/.test(cmd)){const out=i.tool_output?.output||'';const m=out.match(/https:\\/\\/github\\.com\\/[^/]+\\/[^/]+\\/pull\\/\\d+/);if(m){console.error('[Hook] PR creado: '+m[0])}}console.log(d)})\""
+          }
+        ],
+        "description": "Loguear URL del PR al crearlo"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{execSync}=require('child_process');try{const files=execSync('git diff --name-only HEAD 2>/dev/null||true',{encoding:'utf8'}).split('\\n').filter(f=>f.endsWith('.java'));const fs=require('fs');const found=[];files.forEach(f=>{if(fs.existsSync(f)){const c=fs.readFileSync(f,'utf8');if(/System\\.out\\.print/.test(c))found.push(f)}});if(found.length){console.error('[Hook] System.out.println en archivos modificados:');found.forEach(f=>console.error('  '+f))}}catch(e){}\""
+          }
+        ],
+        "description": "Verificar System.out.println en archivos Java modificados"
+      }
+    ]
+  }
+}
