@@ -1,0 +1,343 @@
+{
+  "info": {
+    "_postman_id": "c3f7a1b2-4e99-4f23-ae02-8b3c6d0e1f21",
+    "name": "Aria - Backlogs CRUD Casuistica",
+    "description": "Cobertura CRUD y casos de error para /api/backlogs (ARIA-4)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /api/backlogs - Crear backlog (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('backlogName', `Product Backlog ${Date.now()}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+              "const body = pm.response.json();",
+              "pm.test('response tiene id', function () { pm.expect(body.id).to.be.a('number'); });",
+              "pm.test('name coincide', function () { pm.expect(body.name).to.eql(pm.collectionVariables.get('backlogName')); });",
+              "pm.test('description presente', function () { pm.expect(body.description).to.eql('Tickets pendientes de priorizar'); });",
+              "pm.test('createdAt presente', function () { pm.expect(body.createdAt).to.not.be.null; });",
+              "pm.test('updatedAt presente', function () { pm.expect(body.updatedAt).to.not.be.null; });",
+              "pm.collectionVariables.set('backlogId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{backlogName}}\",\n  \"description\": \"Tickets pendientes de priorizar\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs - Listar todos (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('response es array', function () { pm.expect(body).to.be.an('array'); });",
+              "pm.test('contiene al menos un backlog', function () { pm.expect(body.length).to.be.greaterThan(0); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs/:id - Obtener por ID (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('id coincide', function () { pm.expect(body.id).to.eql(pm.collectionVariables.get('backlogId')); });",
+              "pm.test('name presente', function () { pm.expect(body.name).to.be.a('string'); });",
+              "pm.test('createdAt presente', function () { pm.expect(body.createdAt).to.not.be.null; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs/:id/tickets - Listar tickets del backlog (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('response es array', function () { pm.expect(body).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}", "tickets"]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/backlogs/:id - Actualizar backlog (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+              "const body = pm.response.json();",
+              "pm.test('name actualizado', function () { pm.expect(body.name).to.eql('Backlog Actualizado'); });",
+              "pm.test('description actualizada', function () { pm.expect(body.description).to.eql('Descripcion actualizada'); });",
+              "pm.test('updatedAt presente', function () { pm.expect(body.updatedAt).to.not.be.null; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Backlog Actualizado\",\n  \"description\": \"Descripcion actualizada\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}"]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/backlogs/:id - Eliminar backlog (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs/:id - Backlog eliminado retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs/:id/tickets - Backlog eliminado retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/{{backlogId}}/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "{{backlogId}}", "tickets"]
+        }
+      }
+    },
+    {
+      "name": "GET /api/backlogs/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "99999"]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/backlogs/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Backlog Fantasma\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "99999"]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/backlogs/99999 - ID inexistente retorna 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs/99999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs", "99999"]
+        }
+      }
+    },
+    {
+      "name": "POST /api/backlogs - Body sin name retorna 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Sin nombre no deberia crear\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/backlogs",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "backlogs"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "backlogId", "value": "" },
+    { "key": "backlogName", "value": "" }
+  ]
+}

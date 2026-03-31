@@ -41,6 +41,10 @@ public class Ticket {
     private Priority priority;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "backlog_id")
+    private Backlog backlog;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id")
     private Person reporter;
 

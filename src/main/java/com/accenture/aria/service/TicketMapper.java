@@ -35,6 +35,7 @@ public class TicketMapper {
                 .priority(ticket.getPriority())
                 .reporter(PersonMapper.toResponse(ticket.getReporter()))
                 .assignee(PersonMapper.toResponse(ticket.getAssignee()))
+                .backlogId(ticket.getBacklog() != null ? ticket.getBacklog().getId() : null)
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .build();

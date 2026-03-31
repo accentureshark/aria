@@ -7,7 +7,8 @@
     "test:persons": "newman run Aria-Persons-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli",
     "test:tickets": "newman run Aria-Tickets-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli",
     "test:sprints": "newman run Aria-Sprints-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli,htmlextra --reporter-htmlextra-export reports/sprints-report.html",
-    "test:all": "npm run test:persons && npm run test:tickets && npm run test:sprints"
+    "test:backlogs": "newman run Aria-Backlogs-CRUD-Casuistica.postman_collection.json -e Aria-local.postman_environment.json --reporters cli,htmlextra --reporter-htmlextra-export reports/backlog-ARIA-4-report.html",
+    "test:all": "npm run test:persons && npm run test:tickets && npm run test:sprints && npm run test:backlogs"
   },
   "devDependencies": {
     "newman": "^6.1.3",

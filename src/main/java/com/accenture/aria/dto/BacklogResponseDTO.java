@@ -1,7 +1,5 @@
 package com.accenture.aria.dto;
 
-import com.accenture.aria.model.Priority;
-import com.accenture.aria.model.Status;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,17 +10,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TicketResponseDTO {
+public class BacklogResponseDTO {
 
     private Long id;
-    private String title;
+    private String name;
     private String description;
-    private Status status;
-    private Priority priority;
-    private PersonResponseDTO reporter;
-    private PersonResponseDTO assignee;
-    private Long backlogId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-
