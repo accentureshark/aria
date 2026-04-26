@@ -1,12 +1,10 @@
 package com.accenture.aria.service;
 
 import com.accenture.aria.dto.TicketRequestDTO;
-import com.accenture.aria.model.Backlog;
 import com.accenture.aria.model.Person;
 import com.accenture.aria.model.Priority;
 import com.accenture.aria.model.Status;
 import com.accenture.aria.model.Ticket;
-import com.accenture.aria.repository.BacklogRepository;
 import com.accenture.aria.repository.PersonRepository;
 import com.accenture.aria.repository.TicketRepository;
 import com.accenture.aria.service.exception.ResourceNotFoundException;
@@ -20,13 +18,10 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final PersonRepository personRepository;
-    private final BacklogRepository backlogRepository;
 
-    public TicketService(TicketRepository ticketRepository, PersonRepository personRepository,
-            BacklogRepository backlogRepository) {
+    public TicketService(TicketRepository ticketRepository, PersonRepository personRepository) {
         this.ticketRepository = ticketRepository;
         this.personRepository = personRepository;
-        this.backlogRepository = backlogRepository;
     }
 
     public List<Ticket> findAll() {
@@ -39,7 +34,7 @@ public class TicketService {
 
     public Ticket create(Ticket ticket) {
         if (ticket.getStatus() == null) {
-            ticket.setStatus(Status.OPEN);
+            ticket.setStatus(Status.TODO);
         }
         if (ticket.getPriority() == null) {
             ticket.setPriority(Priority.MEDIUM);
@@ -57,9 +52,6 @@ public class TicketService {
         }
         if (dto.getAssigneeId() != null) {
             ticket.setAssignee(resolvePersonOrThrow(dto.getAssigneeId()));
-        }
-        if (dto.getBacklogId() != null) {
-            ticket.setBacklog(resolveBacklogOrThrow(dto.getBacklogId()));
         }
         return create(ticket);
     }
@@ -84,9 +76,16 @@ public class TicketService {
                     if (dto.getAssigneeId() != null) {
                         existing.setAssignee(resolvePersonOrThrow(dto.getAssigneeId()));
                     }
-                    if (dto.getBacklogId() != null) {
-                        existing.setBacklog(resolveBacklogOrThrow(dto.getBacklogId()));
-                    }
+                    existing.setUpdatedAt(LocalDateTime.now());
+                    return ticketRepository.save(existing);
+                });
+    }
+
+    public Optional<Ticket> updateStatus(Long id, String statusValue) {
+        Status parsedStatus = parseStatus(statusValue);
+        return ticketRepository.findById(id)
+                .map(existing -> {
+                    existing.setStatus(parsedStatus);
                     existing.setUpdatedAt(LocalDateTime.now());
                     return ticketRepository.save(existing);
                 });
@@ -126,9 +125,11 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found: " + personId));
     }
 
-    private Backlog resolveBacklogOrThrow(Long backlogId) {
-        return backlogRepository.findById(backlogId)
-                .orElseThrow(() -> new ResourceNotFoundException("Backlog not found: " + backlogId));
+    private Status parseStatus(String statusValue) {
+        try {
+            return Status.valueOf(statusValue);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new IllegalArgumentException("Invalid status. Allowed values: TODO, IN_PROGRESS, DONE");
+        }
     }
 }
-

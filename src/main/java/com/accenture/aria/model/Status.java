@@ -1,9 +1,7 @@
 package com.accenture.aria.model;
 
 public enum Status {
-    OPEN,
+    TODO,
     IN_PROGRESS,
-    RESOLVED,
-    CLOSED
+    DONE
 }
-
