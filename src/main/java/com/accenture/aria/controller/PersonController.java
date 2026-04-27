@@ -2,8 +2,10 @@ package com.accenture.aria.controller;
 
 import com.accenture.aria.dto.PersonRequestDTO;
 import com.accenture.aria.dto.PersonResponseDTO;
+import com.accenture.aria.dto.TicketResponseDTO;
 import com.accenture.aria.service.PersonMapper;
 import com.accenture.aria.service.PersonService;
+import com.accenture.aria.service.TicketMapper;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,16 @@ public class PersonController {
     public ResponseEntity<PersonResponseDTO> findById(@PathVariable Long id) {
         return personService.findById(id)
                 .map(PersonMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/tickets")
+    public ResponseEntity<List<TicketResponseDTO>> findAssignedTickets(@PathVariable Long id) {
+        return personService.findAssignedTickets(id)
+                .map(tickets -> tickets.stream()
+                        .map(TicketMapper::toResponse)
+                        .toList())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

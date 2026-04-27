@@ -12,6 +12,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByBacklogId(Long backlogId);
 
+    List<Ticket> findByAssigneeId(Long assigneeId);
+
     List<Ticket> findBySprintId(Long sprintId);
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.sprint.id = :sprintId AND t.priority = :priority")

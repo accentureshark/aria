@@ -2,7 +2,9 @@ package com.accenture.aria.service;
 
 import com.accenture.aria.dto.PersonRequestDTO;
 import com.accenture.aria.model.Person;
+import com.accenture.aria.model.Ticket;
 import com.accenture.aria.repository.PersonRepository;
+import com.accenture.aria.repository.TicketRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -11,9 +13,11 @@ import org.springframework.stereotype.Service;
 public class PersonService {
 
     private final PersonRepository personRepository;
+    private final TicketRepository ticketRepository;
 
-    public PersonService(PersonRepository personRepository) {
+    public PersonService(PersonRepository personRepository, TicketRepository ticketRepository) {
         this.personRepository = personRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     public List<Person> findAll() {
@@ -34,6 +38,11 @@ public class PersonService {
 
     public List<Person> findByDepartment(String department) {
         return personRepository.findByDepartment(department);
+    }
+
+    public Optional<List<Ticket>> findAssignedTickets(Long personId) {
+        return personRepository.findById(personId)
+                .map(person -> ticketRepository.findByAssigneeId(personId));
     }
 
     public Person create(Person person) {
