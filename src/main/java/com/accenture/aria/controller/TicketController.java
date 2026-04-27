@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +33,14 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<List<TicketResponseDTO>> findAll() {
         List<TicketResponseDTO> response = ticketService.findAll().stream()
+                .map(TicketMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<TicketResponseDTO>> search(@RequestParam(required = false) String priority) {
+        List<TicketResponseDTO> response = ticketService.search(null, priority).stream()
                 .map(TicketMapper::toResponse)
                 .toList();
         return ResponseEntity.ok(response);
