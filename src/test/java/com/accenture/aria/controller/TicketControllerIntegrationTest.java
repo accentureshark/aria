@@ -1,6 +1,8 @@
 package com.accenture.aria.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -64,12 +66,58 @@ class TicketControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void search_withPriority_returnsFilteredTickets() throws Exception {
+        ticketRepository.save(buildTicket("Pago atrasado", Status.TODO, Priority.HIGH));
+        ticketRepository.save(buildTicket("Pago pendiente", Status.IN_PROGRESS, Priority.MEDIUM));
+        ticketRepository.save(buildTicket("Error login", Status.TODO, Priority.HIGH));
+
+        mockMvc.perform(get("/api/tickets/search")
+                        .queryParam("priority", "HIGH"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].priority").value("HIGH"))
+                .andExpect(jsonPath("$[1].priority").value("HIGH"));
+    }
+
+    @Test
+    void search_withInvalidPriority_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/tickets/search")
+                        .queryParam("priority", "INVALID"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Invalid prioridad")));
+    }
+
+    @Test
+    void search_withNoPriority_returnsAllTickets() throws Exception {
+        ticketRepository.save(buildTicket("Pago atrasado", Status.TODO, Priority.HIGH));
+        ticketRepository.save(buildTicket("Pago pendiente", Status.IN_PROGRESS, Priority.MEDIUM));
+
+        mockMvc.perform(get("/api/tickets/search"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void search_withPriorityNoResults_returnsEmptyList() throws Exception {
+        ticketRepository.save(buildTicket("Pago atrasado", Status.TODO, Priority.LOW));
+
+        mockMvc.perform(get("/api/tickets/search")
+                        .queryParam("priority", "HIGH"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
     private Ticket buildTicket(Status status) {
+        return buildTicket("Integration ticket", status, Priority.MEDIUM);
+    }
+
+    private Ticket buildTicket(String title, Status status, Priority priority) {
         return Ticket.builder()
-                .title("Integration ticket")
+                .title(title)
                 .description("Integration test")
                 .status(status)
-                .priority(Priority.MEDIUM)
+                .priority(priority)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
