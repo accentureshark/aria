@@ -2,6 +2,7 @@ package com.accenture.aria.controller;
 
 import com.accenture.aria.dto.SprintRequestDTO;
 import com.accenture.aria.dto.SprintResponseDTO;
+import com.accenture.aria.dto.SprintSummaryResponseDTO;
 import com.accenture.aria.model.SprintStatus;
 import com.accenture.aria.service.SprintMapper;
 import com.accenture.aria.service.SprintService;
@@ -49,6 +50,13 @@ public class SprintController {
     public ResponseEntity<SprintResponseDTO> findById(@PathVariable Long id) {
         return sprintService.findById(id)
                 .map(SprintMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<SprintSummaryResponseDTO> getSummary(@PathVariable Long id) {
+        return sprintService.getSummary(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

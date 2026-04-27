@@ -7,9 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.accenture.aria.dto.SprintRequestDTO;
+import com.accenture.aria.dto.SprintSummaryResponseDTO;
+import com.accenture.aria.model.Priority;
 import com.accenture.aria.model.Sprint;
 import com.accenture.aria.model.SprintStatus;
+import com.accenture.aria.model.Status;
 import com.accenture.aria.repository.SprintRepository;
+import com.accenture.aria.repository.TicketRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +28,9 @@ class SprintServiceTest {
 
     @Mock
     private SprintRepository sprintRepository;
+
+    @Mock
+    private TicketRepository ticketRepository;
 
     @InjectMocks
     private SprintService sprintService;
@@ -145,6 +152,43 @@ class SprintServiceTest {
 
         assertThat(result).isFalse();
         verify(sprintRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void getSummary_existingSprint_returnsSummaryWithStats() {
+        Sprint sprint = buildSprint(1L, "Sprint 1");
+        when(sprintRepository.findById(1L)).thenReturn(Optional.of(sprint));
+        when(ticketRepository.countBySprintId(1L)).thenReturn(10);
+        when(ticketRepository.countBySprintIdAndPriority(1L, Priority.LOW)).thenReturn(2);
+        when(ticketRepository.countBySprintIdAndPriority(1L, Priority.MEDIUM)).thenReturn(5);
+        when(ticketRepository.countBySprintIdAndPriority(1L, Priority.HIGH)).thenReturn(2);
+        when(ticketRepository.countBySprintIdAndPriority(1L, Priority.URGENT)).thenReturn(1);
+        when(ticketRepository.countBySprintIdAndStatus(1L, Status.TODO)).thenReturn(3);
+        when(ticketRepository.countBySprintIdAndStatus(1L, Status.IN_PROGRESS)).thenReturn(5);
+        when(ticketRepository.countBySprintIdAndStatus(1L, Status.DONE)).thenReturn(2);
+
+        Optional<SprintSummaryResponseDTO> result = sprintService.getSummary(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(1L);
+        assertThat(result.get().getName()).isEqualTo("Sprint 1");
+        assertThat(result.get().getTotalTickets()).isEqualTo(10);
+        assertThat(result.get().getTicketsByPriority().getLow()).isEqualTo(2);
+        assertThat(result.get().getTicketsByPriority().getMedium()).isEqualTo(5);
+        assertThat(result.get().getTicketsByPriority().getHigh()).isEqualTo(2);
+        assertThat(result.get().getTicketsByPriority().getUrgent()).isEqualTo(1);
+        assertThat(result.get().getTicketsByStatus().getLow()).isEqualTo(3);
+        assertThat(result.get().getTicketsByStatus().getMedium()).isEqualTo(5);
+        assertThat(result.get().getTicketsByStatus().getHigh()).isEqualTo(2);
+    }
+
+    @Test
+    void getSummary_nonExistingSprint_returnsEmpty() {
+        when(sprintRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<SprintSummaryResponseDTO> result = sprintService.getSummary(99L);
+
+        assertThat(result).isEmpty();
     }
 
     private Sprint buildSprint(Long id, String name) {

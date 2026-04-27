@@ -52,6 +52,10 @@ public class Ticket {
     @JoinColumn(name = "assignee_id")
     private Person assignee;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sprint_id")
+    private Sprint sprint;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
