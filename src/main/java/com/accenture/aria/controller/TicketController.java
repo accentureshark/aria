@@ -1,8 +1,12 @@
 package com.accenture.aria.controller;
 
+import com.accenture.aria.dto.CommentRequestDTO;
+import com.accenture.aria.dto.CommentResponseDTO;
 import com.accenture.aria.dto.TicketRequestDTO;
 import com.accenture.aria.dto.TicketResponseDTO;
 import com.accenture.aria.dto.TicketStatusUpdateRequestDTO;
+import com.accenture.aria.service.CommentMapper;
+import com.accenture.aria.service.CommentService;
 import com.accenture.aria.service.TicketMapper;
 import com.accenture.aria.service.TicketService;
 import jakarta.validation.Valid;
@@ -24,9 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final CommentService commentService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, CommentService commentService) {
         this.ticketService = ticketService;
+        this.commentService = commentService;
     }
 
     @GetMapping
@@ -75,5 +81,12 @@ public class TicketController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<CommentResponseDTO> createComment(@PathVariable Long id,
+                                                            @Valid @RequestBody CommentRequestDTO requestDTO) {
+        CommentResponseDTO response = CommentMapper.toResponse(commentService.createComment(id, requestDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
