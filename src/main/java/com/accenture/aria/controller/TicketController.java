@@ -3,6 +3,7 @@ package com.accenture.aria.controller;
 import com.accenture.aria.dto.TicketRequestDTO;
 import com.accenture.aria.dto.TicketResponseDTO;
 import com.accenture.aria.dto.TicketStatusUpdateRequestDTO;
+import com.accenture.aria.model.Priority;
 import com.accenture.aria.service.TicketMapper;
 import com.accenture.aria.service.TicketService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,6 +34,24 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<List<TicketResponseDTO>> findAll() {
         List<TicketResponseDTO> response = ticketService.findAll().stream()
+                .map(TicketMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/backlog")
+    public ResponseEntity<List<TicketResponseDTO>> findBacklog(
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false, defaultValue = "created_at") String sort) {
+        Priority priorityEnum = null;
+        if (priority != null) {
+            try {
+                priorityEnum = Priority.valueOf(priority.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        List<TicketResponseDTO> response = ticketService.findBacklog(priorityEnum, sort).stream()
                 .map(TicketMapper::toResponse)
                 .toList();
         return ResponseEntity.ok(response);
