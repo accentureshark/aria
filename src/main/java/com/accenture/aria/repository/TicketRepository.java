@@ -16,6 +16,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findBySprintId(Long sprintId);
 
+    @Query("SELECT t FROM Ticket t WHERE t.backlog IS NOT NULL ORDER BY t.createdAt DESC")
+    List<Ticket> findAllBacklogTickets();
+
+    @Query("SELECT t FROM Ticket t WHERE t.backlog IS NOT NULL AND t.priority = :priority ORDER BY t.createdAt DESC")
+    List<Ticket> findBacklogTicketsByPriority(@Param("priority") Priority priority);
+
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.sprint.id = :sprintId AND t.priority = :priority")
     Integer countBySprintIdAndPriority(@Param("sprintId") Long sprintId, @Param("priority") Priority priority);
 
