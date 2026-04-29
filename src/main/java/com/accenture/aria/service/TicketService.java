@@ -32,6 +32,17 @@ public class TicketService {
         return ticketRepository.findById(id);
     }
 
+    public List<Ticket> findBacklog(Priority priority, String sortBy) {
+        List<Ticket> tickets = new java.util.ArrayList<>(priority == null
+            ? ticketRepository.findAllBacklogTickets()
+            : ticketRepository.findBacklogTicketsByPriority(priority));
+
+        if ("priority".equals(sortBy)) {
+            tickets.sort((a, b) -> b.getPriority().compareTo(a.getPriority()));
+        }
+        return tickets;
+    }
+
     public Ticket create(Ticket ticket) {
         if (ticket.getStatus() == null) {
             ticket.setStatus(Status.TODO);
